@@ -1,10 +1,15 @@
 import { groq } from "@ai-sdk/groq";
-import { ModelMessage, streamText, ToolSet } from "ai";
+import { embed, ModelMessage, streamText, ToolSet } from "ai";
 import { calculatorTool, weatherCheckerTool } from "./tools";
 
-export const messageGenerator = async () => {
+export const messageGenerator = async (input: string) => {
   try {
     const messages: ModelMessage[] = [];
+
+    messages.push({
+      role: "user",
+      content: input,
+    });
 
     const tools: ToolSet = {
       weatherChecker: {
@@ -33,7 +38,12 @@ export const messageGenerator = async () => {
       console.log(part);
     }
 
-    return fullResponse;
+    const { embedding } = await embed({
+      model: groq.textEmbeddingModel("llama-3.3-70b-versatile"),
+      value: fullResponse,
+    });
+
+    return { fullResponse, embedding };
   } catch (error) {
     console.log(error);
   }
