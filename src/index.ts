@@ -3,6 +3,7 @@ import cors from "cors";
 import { config } from "dotenv";
 
 import agentRoutes from "./routes/agent.route";
+import { getRecordData } from "./lib/pinecone";
 
 // Load environment variables from .env file
 config();
@@ -19,6 +20,8 @@ app.use("/api/agent", agentRoutes);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+// console.log(getRecordData);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

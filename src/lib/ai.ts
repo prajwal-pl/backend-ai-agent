@@ -1,6 +1,8 @@
 import { groq } from "@ai-sdk/groq";
 import { embed, ModelMessage, streamText, ToolSet } from "ai";
-import { calculatorTool, weatherCheckerTool } from "./tools";
+import { calculatorTool, getRecordData, weatherCheckerTool } from "./tools";
+import { systemPrompt } from "./prompt";
+import { z } from "zod";
 
 export const messageGenerator = async (input: string) => {
   try {
@@ -22,13 +24,19 @@ export const messageGenerator = async (input: string) => {
         description: "A tool for performing calculations",
         execute: calculatorTool,
       },
+      data: {
+        name: "Data Access",
+        description: "A tool for accessing markdown data",
+        execute: getRecordData,
+      },
     };
 
     const response = streamText({
       model: groq("llama-3.3-70b-versatile"),
       messages,
       tools,
-      toolChoice: "required",
+      system: systemPrompt,
+      toolChoice: "auto",
     });
 
     let fullResponse = "";
@@ -38,12 +46,7 @@ export const messageGenerator = async (input: string) => {
       console.log(part);
     }
 
-    const { embedding } = await embed({
-      model: groq.textEmbeddingModel("llama-3.3-70b-versatile"),
-      value: fullResponse,
-    });
-
-    return { fullResponse, embedding };
+    return fullResponse;
   } catch (error) {
     console.log(error);
   }
