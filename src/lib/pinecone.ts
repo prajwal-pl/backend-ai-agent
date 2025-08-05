@@ -55,7 +55,7 @@ const recordData = index
     },
   ])
   .then((response) => {
-    console.log("Upserted records:", response);
+    console.log("Upserted records");
   })
   .catch((error) => {
     console.error("Error upserting records:", error);

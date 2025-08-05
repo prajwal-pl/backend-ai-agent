@@ -13,21 +13,40 @@ export const messageGenerator = async (input: string) => {
       content: input,
     });
 
+    let calculatorResponse = "";
+    let weatherResponse = "";
+    let dataResponse = "";
+
     const tools: ToolSet = {
       weatherChecker: {
-        name: "Weather Checker",
         description: "A tool for checking weather",
-        execute: weatherCheckerTool,
+        execute: async () => {
+          weatherResponse = await weatherCheckerTool();
+        },
+        type: "function",
       },
       calculator: {
-        name: "Calculator",
-        description: "A tool for performing calculations",
-        execute: calculatorTool,
+        description:
+          "A tool for performing calculations with generic mathematical questions",
+        inputSchema: z.object({
+          query: z
+            .string()
+            .describe("The mathematical expression to calculate"),
+        }),
+        execute: async ({ query }) => {
+          calculatorResponse = await calculatorTool(query);
+        },
+        type: "function",
       },
-      data: {
-        name: "Data Access",
-        description: "A tool for accessing markdown data",
-        execute: getRecordData,
+      dataAccess: {
+        description: "A tool for accessing data based on user input",
+        inputSchema: z.object({
+          query: z.string().describe("The query to search for data"),
+        }),
+        execute: async ({ query }) => {
+          dataResponse = getRecordData(query);
+        },
+        type: "function",
       },
     };
 
@@ -35,8 +54,8 @@ export const messageGenerator = async (input: string) => {
       model: groq("llama-3.3-70b-versatile"),
       messages,
       tools,
-      system: systemPrompt,
       toolChoice: "auto",
+      system: systemPrompt,
     });
 
     let fullResponse = "";
@@ -46,7 +65,7 @@ export const messageGenerator = async (input: string) => {
       console.log(part);
     }
 
-    return fullResponse;
+    return { fullResponse, calculatorResponse, weatherResponse, dataResponse };
   } catch (error) {
     console.log(error);
   }
